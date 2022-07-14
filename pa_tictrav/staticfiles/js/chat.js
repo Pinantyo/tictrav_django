@@ -46,25 +46,46 @@ function firstBotMessage() {
 
 firstBotMessage();
 
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
 // Retrieves the response
 function getHardResponse(userText) {
 
     // Get jawaban dari QAS URL dengan metode POST
     $.ajax({
-        url:"https://tictrav.herokuapp.com/chatbot/ask-question/",
+        url:'https://tictrav.herokuapp.com/chatbot/ask-question/',
         type:'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
         data: {
-            'pertanyaan':userText
+            'pertanyaan':userText,
+            'csrfmiddlewaretoken':getCookie('csrftoken')
         },
         // Bila post request berhasil maka akan ditambahkan hasil response ke dalam chat htmlnya.
         success:function(response){
-            console.log(response);
             if(response){
                 let botHtml = '<p class="botText"><span>' + response.jawaban + '</span></p>';
                 $("#chatbox").append(botHtml);
             }
         }
-    })
+    });
 
     document.getElementById("chat-bar-bottom").scrollIntoView(true);
 }

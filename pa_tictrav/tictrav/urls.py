@@ -23,6 +23,8 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('edit-profile/', views.editProfile, name='editProfile'),
     path('personalization/', views.personalize, name='personalisasi'),
+    path('transaction/', views.transactionHistory, name='transactionHistory'),
+    path('transaction-details/<int:orderid>/',views.getTransactionDetails, name='transactionDetails'),
 
 
     path('password_reset/', authView.PasswordResetView.as_view(template_name='account/password_reset_form.html',

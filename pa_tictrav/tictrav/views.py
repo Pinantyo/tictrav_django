@@ -31,13 +31,67 @@ import datetime
 # Pesan
 from django.contrib import messages
 
+# JsonResponse
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+
+# Serializer
+from django.core import serializers
+
 
 # Create your views here.
 model_statictis_item = None
 model_predict = None
 
+
+# Home
+def index(request):
+    global model_predict
+    recommend = None
+    tourism = models.TourismPlace.objects.all()
+    data = {
+        'place_id':[i.place_id for i in tourism],
+        'place_name':[i.place_name for i in tourism],
+        'category':[i.category for i in tourism],
+    }
+    if request.user.is_authenticated:
+        personal = [i.category for i in models.personalization.objects.filter(user=request.user)]
+
+        if model_predict == None:
+            model_predict = md.Model('ModelUserAgeTourismConcate(Dipake)',data)
+        
+        recommend = model_predict.predict(request.user.id,request.user.age)
+        if personal:
+            recommend = models.TourismPlace.objects.filter(pk__in=recommend, category__in=personal)
+        else:
+            recommend = models.TourismPlace.objects.filter(pk__in=recommend)
+
+
+    # tourism = models.TourismPlace.objects.values('city').annotate(jum_city=Count('city')).order_by()
+    return render(request, 'home.html',{'tourism': tourism,'recommend':recommend})
+
+
+def desc(request, placeid):
+    global model_statictis_item
+    tourism = models.TourismPlace.objects.get(place_id=placeid)
+
+    comments = models.Reservation.objects.select_related().filter(place_id=placeid)
+
+    # Inisialisasi model hanya sekali
+    if model_statictis_item == None:
+        reservation = models.Reservation.objects.values_list('user','place','place_ratings')
+        # 0 user 1 item
+        model_statictis_item = md.colaborative_calculation_statistik(reservation,"place",1)
+
+    # Penghapusan karakter place_ hasil get_dummies
+    recommend = model_statictis_item.itemRecommendedByItem(tourism.place_id, 5)
+    recommend = models.TourismPlace.objects.filter(pk__in=recommend)
+
+    return render(request, "desc.html", {'data':tourism, 'recommend':recommend, 'comments':comments})
+
+
 """
-    Account
+    Fungsi pengaturan profil user
 """
 # Login
 # def login(request):
@@ -72,51 +126,6 @@ def register(request):
 def logout(request):
     logout(request)
     return redirect("/")
-
-#Home
-def index(request):
-    global model_predict
-    recommend = None
-    tourism = models.TourismPlace.objects.all()
-    data = {
-        'place_id':[i.place_id for i in tourism],
-        'place_name':[i.place_name for i in tourism],
-        'category':[i.category for i in tourism],
-    }
-    if request.user.is_authenticated:
-        personal = [i.category for i in models.personalization.objects.filter(user=request.user)]
-
-        if model_predict == None:
-            model_predict = md.Model('ModelUserAgeTourismConcate(Dipake)',data)
-        
-        recommend = model_predict.predict(request.user.id,request.user.age)
-        if personal:
-            recommend = models.TourismPlace.objects.filter(pk__in=recommend, category__in=personal)
-        else:
-            recommend = models.TourismPlace.objects.filter(pk__in=recommend)
-
-
-    # tourism = models.TourismPlace.objects.values('city').annotate(jum_city=Count('city')).order_by()
-    return render(request, 'home.html',{'tourism': tourism,'recommend':recommend})
-
-def desc(request, placeid):
-    global model_statictis_item
-    tourism = models.TourismPlace.objects.get(place_id=placeid)
-
-    comments = models.Reservation.objects.select_related().filter(place_id=placeid)
-
-    # Inisialisasi model hanya sekali
-    if model_statictis_item == None:
-        reservation = models.Reservation.objects.values_list('user','place','place_ratings')
-        # 0 user 1 item
-        model_statictis_item = md.colaborative_calculation_statistik(reservation,"place",1)
-
-    # Penghapusan karakter place_ hasil get_dummies
-    recommend = model_statictis_item.itemRecommendedByItem(tourism.place_id, 5)
-    recommend = models.TourismPlace.objects.filter(pk__in=recommend)
-
-    return render(request, "desc.html", {'data':tourism, 'recommend':recommend, 'comments':comments})
-
 
 @login_required(login_url=settings.LOGIN_URL)
 def editProfile(request):
@@ -162,9 +171,38 @@ def personalize(request):
     
     return render(request, "account/personalisasi.html",{'categories':category,'personal':personal})
 
+@login_required(login_url=settings.LOGIN_URL)
+def transactionHistory(request):
+    data = models.Reservation.objects.filter(user=request.user)
+    return render(request, 'account/paymentHistory.html',{'data':data})
+
+@csrf_protect
+@login_required(login_url=settings.LOGIN_URL)
+def getTransactionDetails(request, orderid):
+    try:
+        data = models.Reservation.objects.filter(user=request.user, id=orderid).values()
+    except:
+        raise PermissionDenied
+    
+    return JsonResponse({
+        'data':list(data)
+    })
+
+
+
+"""
+    List tempat wisata berdasarkan kota
+"""
+
 def getWisataByKota(request, city):
     tourism = models.TourismPlace.objects.filter(city=city)
     return render(request, "kotawisata.html",{'tourism':tourism,'city':city}) 
+
+
+
+
+
+
 
 """
     Pemesanan reservasi
@@ -193,6 +231,16 @@ def reservasi(request,placeid):
     reservasi_form =  forms.ReservationForm(instance=request.user)
     return render(request, "pemesanan.html",{'reservation':reservasi_form,'tourism':tourism})
 
+
+
+
+
+
+
+"""
+    Pemberian rating oleh user pada
+    tempat wisata
+"""
 @login_required(login_url=settings.LOGIN_URL)
 def ratePlace(request, placeid):
     if request.method == 'POST':
@@ -209,7 +257,9 @@ def ratePlace(request, placeid):
     raise PermissionDenied
 
 
-
+"""
+    Visualisasi dan pengunduhan tiket
+"""
 #Ticket
 def render_pdf(template_src, context_dict={}):
     template = get_template(template_src)
@@ -246,6 +296,11 @@ def ticket(request):
         "time" : reservation.due_date
     }
     return render(request, 'tickets/ticket.html', data)
+
+
+
+
+
 
 
 # Custom error

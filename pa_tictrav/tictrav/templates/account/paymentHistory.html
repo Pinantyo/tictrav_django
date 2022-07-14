@@ -1,0 +1,62 @@
+{% extends 'template.html' %}
+{% load static %}
+{% block title %}Transaction{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/stylepersonalisasi.css' %}" />
+<link rel="stylesheet" href="{% static 'css/styletransaction.css' %}" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="{% static 'js/transaction.js' %}"></script>
+<body class="align" style="background-image:url({% static 'img/homebali.jpg' %});background-repeat:no-repeat;background-attachment: fixed;background-size: cover;">
+	<div id="booking" class="section">
+		<div class="section-center">	
+			<div class="row">
+				<ul class="scroll-list">
+					{% for data in data|dictsortreversed:'time' %}
+						<li class="list" onclick="getDetailTransaction(event,{{data.id|safe}})">
+							<h3>Transaction ID: {{data.id|safe}}</h3>
+							<div class="orderList">
+								<div>Status: {{data.status|safe}}</div>
+								<div>Due Date: {{data.due_date|timesince}} ago</div>
+				
+							</div>
+							<h4>Date: {{data.time|timesince}} ago</h4>
+						</li>
+					{% endfor %}
+
+				</ul>
+
+				<div class="section-list">
+					<h1>Transaction - Monumen Nasional, Jakarta</h1>
+					
+					<h2>Order Id</h2>
+					<table id="orderDetails">
+						<tbody>
+					      <tr>
+					        <td><strong>Payment Method</strong></td>
+					        <td id="paymentMethod">:  BNI</td>
+					      </tr>
+					      <tr>
+					        <td><strong>Total</strong></td>
+					        <td id="price">:  Rp. 10.000,00</td>
+					      </tr>
+					      <tr>
+					        <td><strong>Transaction ID</strong></td>
+					        <td id="id">:  1</td>
+					      </tr>
+					      <tr>
+					        <td><strong>Time</strong></td>
+					        <td id="date">:  08:30</td>
+					      </tr>
+					      <tr class="paymentStatus">
+					        <td><strong>Status</strong></td>
+					        <td id="status">:  Belum dibayar</td>
+					      </tr> 
+					  	</tbody>
+					</table>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+</body>
+{% endblock %}

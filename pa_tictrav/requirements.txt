@@ -27,12 +27,14 @@ h5py==3.7.0
 html5lib==1.1
 huggingface-hub==0.7.0
 idna==3.3
+importlib-metadata==4.12.0
 joblib==1.1.0
 keras==2.9.0
 Keras-Preprocessing==1.1.2
 libclang==14.0.1
 lxml==4.9.0
 Markdown==3.3.7
+midtransclient==1.4.1
 numpy==1.22.4
 oauthlib==3.2.0
 opt-einsum==3.3.0
@@ -90,3 +92,4 @@ Werkzeug==2.1.2
 whitenoise==6.2.0
 wrapt==1.14.1
 xhtml2pdf==0.2.7
+zipp==3.8.1

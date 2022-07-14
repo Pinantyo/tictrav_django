@@ -6,7 +6,7 @@ from model_development import qas
 from django.http import HttpResponse
 import json
 
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 
 from django.contrib import messages
 
@@ -21,7 +21,7 @@ from tictrav import models
 chatbot = None
 
 
-@csrf_exempt
+@csrf_protect
 def getChatbotResponse(request):
 	global chatbot
 
