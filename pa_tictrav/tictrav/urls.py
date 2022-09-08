@@ -1,5 +1,5 @@
 from django.urls import path, include
-from tictrav import views
+from tictrav import views, payment_views
 from django.contrib.auth import views as authView
 
 from django.urls import reverse_lazy
@@ -17,6 +17,11 @@ urlpatterns = [
     path('reservasi-tempat-wisata/<int:placeid>/', views.reservasi, name='reservasiTiket'),
     path('rate/<int:placeid>/', views.ratePlace, name='rate'),
 
+    # Payment
+    path('payment/', payment_views.payment, name='payment'),
+
+
+    
     # Akun
     path('login/', authView.LoginView.as_view(), name='masuk'),
     path('logout/', authView.LogoutView.as_view(next_page='/login'), name='keluar'),

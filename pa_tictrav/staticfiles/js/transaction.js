@@ -27,7 +27,6 @@ function getDetailTransaction(e, id){
 		},
 		success:function(response){
 			if(response){
-				console.log(response.data[0].id);
 				$('#paymentMethod').text(': BNI');
 				// $('#price').text(`:  Rp. ${response.data[0].place}`);
 				$('#id').text(`:  ${response.data[0].id}`);

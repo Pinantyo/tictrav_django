@@ -1,5 +1,3 @@
-from ctypes.wintypes import INT
-from select import select
 from django.shortcuts import render, redirect
 from django.http.response import HttpResponse
 from io import BytesIO
@@ -22,21 +20,12 @@ from tictrav import models, forms
 # Pemodelan AI
 from model_development import model as md
 
-
-# Random generator dan pattern
-import re
-import random
-import datetime
-
 # Pesan
 from django.contrib import messages
 
 # JsonResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-
-# Serializer
-from django.core import serializers
 
 
 # Create your views here.
@@ -209,7 +198,7 @@ def getWisataByKota(request, city):
 """
 # Reservasi
 @login_required(login_url=settings.LOGIN_URL)
-def reservasi(request,placeid):
+def reservasi(request,placeid=None):
     tourism = models.TourismPlace.objects.get(place_id=placeid)
     if request.method == 'POST':
         _, fullname, email, phone, location, due_date = request.POST.values()
@@ -225,7 +214,8 @@ def reservasi(request,placeid):
         reservasi_user = models.Reservation.objects.create(user = request.user , place = tourism, due_date = request.POST['due_date']) 
         reservasi_user.save()
 
-        return redirect(f'/ticket/')
+        # return redirect(f'/ticket/')
+        return redirect(f'/payment/')
 
 
     reservasi_form =  forms.ReservationForm(instance=request.user)

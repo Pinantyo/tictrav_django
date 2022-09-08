@@ -29,7 +29,7 @@ class EditUserForm(forms.ModelForm):
 class ReservationForm(forms.ModelForm):
     user_id = forms.IntegerField()
     place_id = forms.IntegerField()
-    due_date = forms.DateTimeField(required=False, widget=forms.TextInput(attrs={"type":"datetime-local"}))
+    due_date = forms.DateTimeField(required=True, widget=forms.TextInput(attrs={"type":"datetime-local"}))
     
     class Meta:
         model = models.Reservation

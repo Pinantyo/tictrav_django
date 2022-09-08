@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-
 import os
 
 # Get Environment from env
@@ -26,18 +25,44 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY',default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = bool(int(config('DJANGO_DEBUG', default='0')))
 
-ALLOWED_HOSTS = ['0.0.0.0',
-                 'https://tictrav.herokuapp.com',
-                 'http://tictrav.herokuapp.com'
-                 'tictrav.herokuapp.com',
-                 '127.0.0.1']
+ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS').split(',')
 
-CSRF_TRUSTED_ORIGINS = ['https://tictrav.herokuapp.com',
-                        'http://tictrav.herokuapp.com',
-                        'http://127.0.0.1',
-                        'https://127.0.0.1']
+CSRF_TRUSTED_ORIGINS = config('DJANGO_CSRF_TRUSTED_ORIGINS').split(',')
+
+# HTTPS SETTINGS
+if DEBUG:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+else:
+    # X-FRAME
+    X_FRAME_OPTIONS = 'DENY'
+    
+    # HTTPS
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = bool(int(config('DJANGO_SECURE_SSL_REDIRECT', default='0')))
+    SESSION_COOKIE_HTTPONLY = True
+
+    # Content-Type
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+
+    # CSP
+    CSP_SCRIPT_SRC = ["'self'"] + config('DJANGO_CSP_SCRIPT_SRC').split(',')
+
+    CSP_STYLE_SRC = ["'self'"] + config('DJANGO_CSP_STYLE_SRC').split(',')
+
+    CSP_IMG_SRC = ["'self'"]
+
+
+# HSTS SETTINGS
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_PRELOAD = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 # Application definition
 
@@ -153,12 +178,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_URL = '/static/'
 
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'static'),
-# ]
+if DEBUG:
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'staticfiles'),
+    ]
 
-
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 MEDIA_URL = '/media/'
@@ -177,7 +203,7 @@ LOGIN_REDIRECT_URL = 'tictrav:home'
 
 LOGIN_URL = '/login'
 
-
+# DEBUG using File
 # Email Password Reset
 # EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 # EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
@@ -193,4 +219,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 # EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True)
 # EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False)
 
-# django_heroku.settings(locals())
+# Midtrans
+MIDTRANS_SERVER = config('SERVER_KEY', default='')
+CLIENT_KEY = config('CLIENT_KEY', default='')
+

@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster
+FROM python:3.10.6-slim-buster
 
 RUN apt update && \
     apt install --no-install-recommends -y build-essential gcc libpq-dev && \
